@@ -1,0 +1,71 @@
+/*
+ * Device Tree Overlay for nRF9151 LED Control + BME680 Sensor
+ */
+
+/ {
+    aliases {
+        led0 = &led0;
+    };
+    
+    leds {
+        compatible = "gpio-leds";
+        led0: led_0 {
+            gpios = <&gpio0 29 GPIO_ACTIVE_HIGH>;
+            label = "LED Pin 29";
+        };
+    };
+};
+
+/* UART0 configuration for nRF5340 communication */
+&uart0 {
+    status = "okay";
+    current-speed = <115200>;
+};
+
+/* BME680 sensor - exactly like the working example */
+&bme680 {
+    status = "okay";
+};
+
+
+&pinctrl {
+    spi3_bmi270_default: spi3_bmi270_default {
+        group1 {
+            psels = <
+                NRF_PSEL(SPIM_SCK,  0, 14)
+                NRF_PSEL(SPIM_MOSI, 0, 13)
+                NRF_PSEL(SPIM_MISO, 0, 12)
+            >;
+        };
+    };
+
+    spi3_bmi270_sleep: spi3_bmi270_sleep {
+        group1 {
+            psels = <
+                NRF_PSEL(SPIM_SCK,  0, 14)
+                NRF_PSEL(SPIM_MOSI, 0, 13)
+                NRF_PSEL(SPIM_MISO, 0, 12)
+            >;
+            low-power-enable;
+        };
+    };
+};
+
+&spi3 {
+    accelerometer_hp: bmi270@2 {
+            compatible = "bosch,bmi270";
+            status = "okay";
+            reg = <2>;
+            spi-max-frequency = <DT_FREQ_M(10)>;
+        };
+};
+
+/* keep the on-board ADXL367 on I²C2 “as is” ----------------------------- */
+&i2c2 {
+    accel: accelerometer_lp: adxl367@1d {
+        status     = "okay";
+        compatible = "adi,adxl367";
+        reg        = <0x1d>;
+        odr        = <3>;
+    };
+};
